@@ -1,0 +1,40 @@
+# Don't print a new line at the start of the prompt
+add_newline = false
+
+# Replace the ">" symbol in the prompt with "
+
+[env_var]
+variable = "SHELL"
+default = "unknown shell"
+
+[nix_shell]
+use_name = true
+imputer_msg = "impure_shell"
+pure_msg = "pure_shell"
+
+prompt_order = [
+    "username",
+    "hostname",
+    "env_var",
+    "nix_shell",
+    "directory",
+    "git_branch",
+    "git_commit",
+    "git_state",
+    "git_status",
+    "package",
+    "cmd_duration",
+    "nodejs",
+    "python",
+    "rust",
+    "terraform",
+    "conda",
+    "memory_usage",
+    "aws",
+    "crystal",
+    "line_break",
+    "jobs",
+    "battery",
+    "time",
+    "character",
+]
