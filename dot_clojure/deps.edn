@@ -24,6 +24,9 @@
     :liquid
       {:extra-deps {mogenslund/liquid {:mvn/version "RELEASE"}}
           :main-opts ["-m" "dk.salza.liq.core"]}
+    :paravim 
+      {:extra-deps {paravim {:mvn/version "RELEASE"}}
+          :main-opts ["-m" "paravim.start"]}
 
   }
   :mvn/repos {
