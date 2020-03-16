@@ -1,0 +1,27 @@
+ {
+ :paths ["src"]
+ :deps {
+        org.clojure/clojure {:mvn/version "1.10.1"}
+ }
+
+ :aliases {
+    :deps {:extra-deps {org.clojure/tools.deps.alpha {:mvn/version "0.6.496"}}}
+    :test {:extra-paths ["test" "src/test/clojure"]
+           :extra-deps {org.clojure/test.check {:mvn/version "RELEASE"}}}
+    ;; - start a modern nREPL server on a random available port:
+    :nrepl {:extra-deps {nrepl {:mvn/version "RELEASE"}}
+          :main-opts ["-m" "nrepl.cmdline"]}
+    ;; - start a Socket pREPL on port 40404:
+    :prepl {:jvm-opts ["-Dclojure.server.repl={:port,40404,:accept,clojure.core.server/io-prepl}"]}
+    :uberjar {:extra-deps {seancorfield/depstar {:mvn/version "RELEASE"}}
+            :main-opts ["-m" "hf.depstar.uberjar"]}
+    :jar {:extra-deps {seancorfield/depstar {:mvn/version "RELEASE"}}
+        :main-opts ["-m" "hf.depstar.jar"]}
+    :new {:extra-deps {seancorfield/clj-new {:mvn/version "RELEASE"}}
+        :main-opts ["-m" "clj-new.create"]}
+  }
+  :mvn/repos {
+    "central" {:url "https://repo1.maven.org/maven2/"}
+    "clojars" {:url "https://repo.clojars.org/"}
+  }
+}
