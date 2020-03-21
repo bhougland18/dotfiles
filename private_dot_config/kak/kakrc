@@ -1,0 +1,59 @@
+
+source "%val{config}/plugins/plug.kak/rc/plug.kak"
+
+plug 'jjk96/kakoune-rainbow'
+plug 'insipx/kak-crosshairs'
+
+#system clipboard integration
+plug "lePerdu/kakboard" %{
+        hook global WinCreate .* %{ kakboard-enable }
+}
+
+#-- APPEARANCE --#
+#ok global WinCreate .* %{ kakboard-enable }
+#}
+#----------------#
+
+#plug "andreyorst/powerline.kak" defer powerline %{
+#set-option global powerline_format 'powerline-format git bufname filetype mode_info line_column position'
+#    poweradd
+#
+# d-highlighter global/matching show-matchingine-toggle line_column on
+#        powerline-theme gruvbox
+#} config %{
+#powerline-start
+#:}
+
+
+
+#-- APPEARANCE --#
+#________________#
+
+colorscheme gruvbox
+#add-highlighter global/matching show-matching	
+
+#turn on cursor line highlighter
+cursorline
+set-face global LineNumbersWrapped white
+add-highlighter global/matching show-matching
+
+
+
+#-- FIlE SPECIFIC CONFIGURATION -- #
+#---------------------------------#
+
+hook -group wrap global WinSetOption filetype=asciidoc %{
+        add-highlighter window/wrap -word
+}
+
+hook global WinSetOption filetype=(clojure|lisp|scheme|racket) %{
+    rainbow-enable
+    parinfer-enable-window -smart
+}
+
+hook global WinSetOption filetype=clojure %{
+        set-option window lintcmd 'cd "$(dirname "$kak_bufname")" && clj-kondo --lint'
+            lint-enable
+                hook -group lint-diagnostics window NormalIdle .* %{ lint; lint-show }
+}
+
