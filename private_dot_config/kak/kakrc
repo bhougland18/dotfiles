@@ -1,8 +1,38 @@
-
 source "%val{config}/plugins/plug.kak/rc/plug.kak"
+
+#-- PLUGIN DEPENDENCIES --#
+#-------------------------#
 
 plug 'jjk96/kakoune-rainbow'
 plug 'insipx/kak-crosshairs'
+plug "andreyorst/smarttab.kak" defer smarttab %{
+# when `backspace' is pressed, 2 spaces are deleted at once
+   set-option global softtabstop 2
+   } config %{
+      # these languages will use `expandtab' behavior
+      hook global WinSetOption filetype=(markdown|kak|lisp|scheme|sh|clojure|python) expandtab
+      # these languages will use `noexpandtab' behavior
+      hook global WinSetOption filetype=(makefile|gas) noexpandtab
+      #                         # these languages will use `smarttab' behavior
+      hook global WinSetOption filetype=(c|cpp) smarttab
+}
+
+plug "andreyorst/powerline.kak" defer powerline %{
+        powerline-theme gruvbox
+        powerline-format default
+} config %{
+        powerline-start
+}
+
+plug "andreyorst/kaktree" config %{
+    hook global WinSetOption filetype=kaktree %{
+        remove-highlighter buffer/numbers
+        remove-highlighter buffer/matching
+        remove-highlighter buffer/wrap
+        remove-highlighter buffer/show-whitespaces
+    }
+    kaktree-enable
+}
 
 #system clipboard integration
 plug "lePerdu/kakboard" %{
@@ -10,50 +40,109 @@ plug "lePerdu/kakboard" %{
 }
 
 #-- APPEARANCE --#
-#ok global WinCreate .* %{ kakboard-enable }
-#}
 #----------------#
-
-#plug "andreyorst/powerline.kak" defer powerline %{
-#set-option global powerline_format 'powerline-format git bufname filetype mode_info line_column position'
-#    poweradd
-#
-# d-highlighter global/matching show-matchingine-toggle line_column on
-#        powerline-theme gruvbox
-#} config %{
-#powerline-start
-#:}
-
-
-
-#-- APPEARANCE --#
-#________________#
 
 colorscheme gruvbox
 #add-highlighter global/matching show-matching	
 
 #turn on cursor line highlighter
 cursorline
-set-face global LineNumbersWrapped white
+add-highlighter global/ number-lines -relative
+#set-face global LineNumbersWrapped black
 add-highlighter global/matching show-matching
+
+
+#-- LAYOUT --#
+##-----------#
+
+
+
+
+#-- GLOBAL CONFIGURATION -- #
+#---------------------------#
+
 
 
 
 #-- FIlE SPECIFIC CONFIGURATION -- #
 #---------------------------------#
 
-hook -group wrap global WinSetOption filetype=asciidoc %{
-        add-highlighter window/wrap -word
+eval %sh{kak-lsp --kakoune -s $kak_session}
+hook global WinSetOption filetype=(python|javascript|clojure|json|css|html|bash) %{
+        lsp-enable-window
 }
+
 
 hook global WinSetOption filetype=(clojure|lisp|scheme|racket) %{
     rainbow-enable
     parinfer-enable-window -smart
 }
 
+
+
+#-- Clojure Mode -- #
+#-------------------#
+
 hook global WinSetOption filetype=clojure %{
-        set-option window lintcmd 'cd "$(dirname "$kak_bufname")" && clj-kondo --lint'
-            lint-enable
-                hook -group lint-diagnostics window NormalIdle .* %{ lint; lint-show }
+    set-option window lintcmd 'cd "$(dirname "$kak_bufname")" && clj-kondo --lint'
+    lint-enable
+    hook -group lint-diagnostics window NormalIdle .* %{ lint; lint-show }
 }
+
+#from eraserhd's github config (don't know what they do)
+declare-option -hidden str clojure_buffer_contents
+declare-option -hidden str-list clojure_selections        #Cutom Commands##
+
+
+#-- Clojure Mode - repl  --#
+#
+
+declare-user-mode clj-repl
+
+define-command -override -params 0 -docstring %{start a clojure repl in the next kitty winodw} \
+    start-repl-clojure %{
+    kitty-repl "corgi exec clj-klipse-repl"
+    }
+
+
+define-command send-repl-selection -docstring "Send the selected text to the repl window" %{
+    nop %sh{
+        kitty @ send-text -m=title:kak_repl_window "${kak_selection}\r"
+    }
+}
+
+define-command update-dependencies -docstring "Hot reload your deps.edn, useful if you made a change" %{
+    nop %sh{
+        kitty @ send-text -m=title:kak_repl_window "(refresh-classpath)\r"
+    }
+}
+
+define-command display-classpath -docstring "Display the classpath as a collection" %{
+    nop %sh{
+        kitty @ send-text -m=title:kak_repl_window "(classpath)\r"
+    }
+}
+
+define-command show-docs-selection -docstring "Display the docs for given selection" %{
+    nop %sh{
+        kitty @ send-text -m=title:kak_repl_window "(doc ${kak_selection})\r"
+    }
+}
+
+define-command show-repl-keybindings -docstring "Show repl keybindings" %{
+    nop %sh{
+        kitty @ send-text -m=title:kak_repl_window ":repl/key-bindings\r" }
+}
+
+map global clj-repl r ':start-repl-clojure<ret>' -docstring 'Start clojure repl'
+map global clj-repl s ':send-repl-selection<ret>' -docstring 'Send selection to repl'
+map global clj-repl d ':show-docs-selection<ret>' -docstring 'Display docs for selection'
+#map global clj-repl c ':clear-repl<ret>' -docstring 'Clear repl window, keep state'
+map global clj-repl u ':update-dependencies<ret>' -docstring 'Hot reload deps.edn'
+map global clj-repl p ':display-classpath<ret>' -docstring 'Display the classpath'
+map global clj-repl k ':show-repl-keybindings<ret>' -docstring 'Display repl keybindings'
+
+
+
+map global normal <a-,> ':enter-user-mode<space>clj-repl<ret>'
 

@@ -3,7 +3,13 @@
 
  eval "$(direnv hook bash)"
 
+# pazi "autojump" program
+if command -v pazi &>/dev/null; then
+  eval "$(pazi init bash)" 
+fi
 
+#this is for bash completions for kitty
+source <(kitty + complete setup bash)
 
-
-
+# this is for tre aliasing and selection
+tre() { command tre "$@" -e && source "/tmp/tre_aliases_$USER" 2>/dev/null; }
